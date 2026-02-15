@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel - Civic Zone</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            background: #f6f6f6;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 60px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: #2c3e50;
+            color: white;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+        }
+        .logo-container i {
+            font-size: 2.5rem;
+            color: #3498db;
+        }
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            letter-spacing: 0.5px;
+        }
+        .logo-text .civic {
+            color: white;
+        }
+        .logo-text .zone {
+            color: #3498db;
+        }
+        .logo-text .solution {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+        .user-welcome {
+            color: #fff;
+            margin-right: 20px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: background-color 0.3s;
+        }
+        .user-welcome:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .user-welcome i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        .header-links {
+            display: flex;
+            gap: 15px;
+        }
+        .header-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .header-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .header-links a[href="logout.php"] {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .header-links a[href="logout.php"]:hover {
+            background-color: #c0392b;
+        }
+        .table-responsive { 
+            margin: 20px 0;
+            overflow-x: auto;
+            min-width: 100%;
+        }
+        .table {
+            margin-bottom: 0;
+            width: 100%;
+            min-width: 1400px;
+        }
+        .table td {
+            vertical-align: middle;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .table th {
+            background-color: #2c3e50;
+            color: white;
+            white-space: nowrap;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-align: center;
+            min-width: 80px;
+        }
+        .status-pending { 
+            background-color: #ffc107;
+            color: #000;
+        }
+        .status-in-progress { 
+            background-color: #17a2b8;
+            color: #fff;
+        }
+        .status-resolved { 
+            background-color: #28a745;
+            color: #fff;
+        }
+        .map-container {
+            max-width: 300px;
+            width: 100%;
+        }
+        .map-view {
+            height: 150px;
+            width: 100%;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            position: relative;
+            z-index: 1;
+        }
+        .leaflet-top, .leaflet-bottom {
+            z-index: 2 !important;
+        }
+        .container {
+            padding-bottom: 20px;
+            max-width: 98%;
+            margin: 0 auto;
+        }
+        .card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .card-body {
+            padding: 1rem;
+        }
+        .form-control, .form-select {
+            border-radius: 4px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+        }
+        .btn-update {
+            background-color: #34495e;
+            color: white;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            width: 100%;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-update:hover {
+            background-color: #2c3e50;
+            color: white;
+        }
+        .user-info {
+            white-space: nowrap;
+            min-width: 200px;
+            width: 200px;
+        }
+        .user-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            display: block;
+        }
+        .user-email {
+            font-size: 0.85rem;
+            color: #6c757d;
+            display: block;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .coordinates {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+        .description-cell {
+            min-width: 250px;
+            width: 250px;
+            font-size: 0.9rem;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        .action-cell {
+            min-width: 150px;
+            width: 150px;
+            padding: 0.75rem !important;
+        }
+        .action-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-select-sm {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .location-cell {
+            min-width: 320px;
+            width: 320px;
+        }
+        .btn-view-image {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.6rem;
+        }
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .main-content {
+            margin-bottom: 60px;
+        }
+        .leaflet-top, .leaflet-bottom {
+            z-index: 2 !important;
+        }
+        .date-cell {
+            white-space: nowrap;
+            min-width: 120px;
+            width: 120px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .category-cell {
+            min-width: 150px;
+            width: 150px;
+            white-space: normal;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+        }
+        .table td.truncate {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .status-overview {
+            margin-bottom: 2rem;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .status-item {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 6px;
+            color: white;
+            transition: transform 0.2s, opacity 0.2s;
+            cursor: pointer;
+        }
+        .status-item:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+        .status-item.active {
+            box-shadow: 0 0 0 3px #fff, 0 0 0 6px currentColor;
+        }
+        .status-count {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .status-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-item.pending {
+            background: #ffc107;
+            color: #000;
+        }
+        .status-item.in-progress {
+            background: #17a2b8;
+        }
+        .status-item.resolved {
+            background: #28a745;
+        }
+        .status-item.total {
+            background: #2c3e50;
+        }
+        .no-complaints-message {
+            background-color: #f8f9fa;
+            padding: 2rem !important;
+        }
+        .no-complaints-message h4 {
+            margin: 0;
+            font-weight: 500;
+        }
+        .filter-controls {
+            background: linear-gradient(135deg, #34495e 0%, #4a5f7a 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .filter-controls::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.15) 0%, rgba(52, 152, 219, 0.08) 100%);
+            pointer-events: none;
+        }
+        .filter-row {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 220px;
+            flex: 1;
+        }
+        .filter-label {
+            font-weight: 600;
+            color: white;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.5px;
+        }
+        .search-box {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            min-width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .search-box:focus {
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2), 0 8px 25px rgba(0, 0, 0, 0.15);
+            outline: none;
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+        .search-box::placeholder {
+            color: #6c757d;
+            opacity: 0.8;
+        }
+        .zone-filter {
+            padding: 0.75rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            min-width: 180px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        .zone-filter:focus {
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2), 0 8px 25px rgba(0, 0, 0, 0.15);
+            outline: none;
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+        .clear-filters {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            min-width: 140px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .clear-filters:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #1f5f8b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .clear-filters:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .print-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            min-width: 140px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .print-btn:hover {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .print-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .filter-stats {
+            margin-top: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+        .filter-stats::before {
+            content: '📊';
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .highlight {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .pagination-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #dee2e6;
+            background: white;
+            color: #2c3e50;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 40px;
+            text-align: center;
+        }
+        .pagination-btn:hover {
+            background: #2c3e50;
+            color: white;
+            border-color: #2c3e50;
+            text-decoration: none;
+        }
+        .pagination-btn.active {
+            background: #2c3e50;
+            color: white;
+            border-color: #2c3e50;
+        }
+        .pagination-btn.disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .pagination-btn.disabled:hover {
+            background: #f8f9fa;
+            color: #6c757d;
+            border-color: #dee2e6;
+        }
+        .page-numbers {
+            display: flex;
+            gap: 0.25rem;
+        }
+        .items-per-page {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .items-per-page select {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 768px) {
+            .filter-controls {
+                padding: 1.5rem;
+                border-radius: 12px;
+            }
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            .filter-group {
+                min-width: auto;
+            }
+            .search-box {
+                min-width: auto;
+            }
+            .zone-filter {
+                min-width: auto;
+            }
+            .clear-filters {
+                min-width: auto;
+                width: 100%;
+            }
+            .print-btn {
+                min-width: auto;
+                width: 100%;
+            }
+            .pagination-container {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            .pagination-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .page-numbers {
+                order: -1;
+            }
+        }
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <header>
+        <div class="header-left">
+            <a href="admin_panel.html" class="logo-container">
+                <i class="fas fa-city"></i>
+                <div class="logo-text">
+                    <span class="civic">Civic</span>
+                    <span class="zone">Zone</span>
+                    <span class="solution">Solution</span>
+                </div>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="user-welcome">
+                <i class="fas fa-user-circle"></i>
+                Welcome, Admin User! 
+                (Administrator)
+            </span>
+            <div class="header-links">
+                <a href="user_management.html">
+                    <i class="fas fa-users"></i> User Management
+                </a>
+                <a href="../accounts/dashboard.html">User Dashboard</a>
+                <a href="logout.html">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="container mt-4">
+            <div class="status-overview">
+                <div class="status-bar">
+                    <div class="status-item pending" onclick="filterComplaints('Pending')" style="cursor: pointer;">
+                        <div class="status-count">5</div>
+                        <div class="status-label">Pending</div>
+                    </div>
+                    <div class="status-item in-progress" onclick="filterComplaints('In Progress')" style="cursor: pointer;">
+                        <div class="status-count">3</div>
+                        <div class="status-label">In Progress</div>
+                    </div>
+                    <div class="status-item resolved" onclick="filterComplaints('Resolved')" style="cursor: pointer;">
+                        <div class="status-count">12</div>
+                        <div class="status-label">Resolved</div>
+                    </div>
+                    <div class="status-item total" onclick="filterComplaints('all')" style="cursor: pointer;">
+                        <div class="status-count">20</div>
+                        <div class="status-label">Show All</div>
+                    </div>
+                </div>
+            </div>
+
+            
+           
+
+            <div class="filter-controls">
+                <form method="get" action="admin_panel.html" id="filterForm">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label class="filter-label">Search Complaints</label>
+                            <input type="text" name="search" id="searchInput" class="search-box" 
+                                   placeholder="Search by user name, email, category, description, or location..."
+                                   value="">
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Filter by Zone</label>
+                            <select name="zone" id="zoneFilter" class="zone-filter">
+                                <option value="">All Zones</option>
+                                <option value="Zone A">Zone A</option>
+                                <option value="Zone B">Zone B</option>
+                                <option value="Zone C">Zone C</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">&nbsp;</label>
+                            <input type="hidden" name="status" id="statusFilter" value="">
+                            <input type="hidden" name="items" id="itemsPerPage" value="10">
+                            <button type="button" id="clearFilters" class="clear-filters">Clear Filters</button>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">&nbsp;</label>
+                            <button type="button" id="printPdf" class="print-btn">📄 Print PDF</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="filter-stats" id="filterStats">
+                    Showing 20 complaints
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Category</th>
+                                    <th>Subcategory</th>
+                                    <th>Zone</th>
+                                    <th>Location</th>
+                                    <th>Description</th>
+                                    <th>Image</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="complaint-1">
+                                    <td class="user-info">
+                                        <span class="user-name">John Doe</span>
+                                        <span class="user-email">john@example.com</span>
+                                    </td>
+                                    <td class="category-cell">Water Supply</td>
+                                    <td class="category-cell">Low Pressure</td>
+                                    <td class="category-cell">Zone A</td>
+                                    <td class="location-cell">
+                                        <div class="map-container">
+                                            <span class="location-text">123 Main Street, City</span>
+                                            <div id="map-1" class="map-view" 
+                                                 onclick="openMapView(40.7128, -74.0060, 'Water Supply', 'Low Pressure', '123 Main Street, City')"></div>
+                                            <div class="coordinates">
+                                                Lat: 40.712800<br>
+                                                Long: -74.006000
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="description-cell">Water pressure is very low in our area</td>
+                                    <td>
+                                        <a href="image1.jpg" target="_blank" class="btn btn-sm btn-info btn-view-image">View Image</a>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-pending" id="status-1">
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td class="date-cell">Jan 15, 2024 10:30</td>
+                                    <td class="action-cell">
+                                        <form method="POST" action="update_complaint_status.html" class="action-form update-status-form">
+                                            <input type="hidden" name="complaint_id" value="1">
+                                            <select name="status" class="form-select form-select-sm">
+                                                <option value="Pending" selected>Pending</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Resolved">Resolved</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-update btn-sm">Update</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr id="complaint-2">
+                                    <td class="user-info">
+                                        <span class="user-name">Jane Smith</span>
+                                        <span class="user-email">jane@example.com</span>
+                                    </td>
+                                    <td class="category-cell">Street Lights</td>
+                                    <td class="category-cell">Not Working</td>
+                                    <td class="category-cell">Zone B</td>
+                                    <td class="location-cell">
+                                        <div class="map-container">
+                                            <span class="location-text">456 Oak Avenue, City</span>
+                                            <div id="map-2" class="map-view" 
+                                                 onclick="openMapView(40.7589, -73.9851, 'Street Lights', 'Not Working', '456 Oak Avenue, City')"></div>
+                                            <div class="coordinates">
+                                                Lat: 40.758900<br>
+                                                Long: -73.985100
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="description-cell">Street light is broken and needs repair</td>
+                                    <td>
+                                        <span class="text-muted">No image</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-in-progress" id="status-2">
+                                            In Progress
+                                        </span>
+                                    </td>
+                                    <td class="date-cell">Jan 14, 2024 14:20</td>
+                                    <td class="action-cell">
+                                        <form method="POST" action="update_complaint_status.html" class="action-form update-status-form">
+                                            <input type="hidden" name="complaint_id" value="2">
+                                            <select name="status" class="form-select form-select-sm">
+                                                <option value="Pending">Pending</option>
+                                                <option value="In Progress" selected>In Progress</option>
+                                                <option value="Resolved">Resolved</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-update btn-sm">Update</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Showing 1 to 10 of 20 complaints
+                </div>
+                <div class="pagination-controls">
+                    <div class="items-per-page">
+                        <label>Items per page:</label>
+                        <select id="itemsSelect" onchange="changeItemsPerPage(this.value)">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                    
+                    <div class="page-numbers">
+                        <span class="pagination-btn disabled">‹</span>
+                        <a href="?page=1" class="pagination-btn active">1</a>
+                        <a href="?page=2" class="pagination-btn">2</a>
+                        <a href="?page=3" class="pagination-btn">3</a>
+                        <a href="?page=2" class="pagination-btn">›</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p style="font-size: 1.1rem; margin: 0;">&copy; 2024 Civic Zone - All rights reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Show loading spinner
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'flex';
+        }
+
+        // Hide loading spinner
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // Initialize maps for each complaint
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map for complaint 1
+            try {
+                const mapElement1 = document.getElementById('map-1');
+                if (mapElement1) {
+                    const map1 = L.map(mapElement1, {
+                        center: [40.7128, -74.0060],
+                        zoom: 13,
+                        scrollWheelZoom: false,
+                        dragging: false,
+                        zoomControl: false,
+                        attributionControl: false
+                    });
+
+                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    }).addTo(map1);
+
+                    L.marker([40.7128, -74.0060])
+                        .addTo(map1)
+                        .bindPopup("<strong>Water Supply</strong><br>Low Pressure");
+
+                    setTimeout(() => {
+                        map1.invalidateSize();
+                    }, 100);
+                }
+            } catch (e) {
+                console.error('Error initializing map for complaint 1:', e);
+            }
+
+            // Initialize map for complaint 2
+            try {
+                const mapElement2 = document.getElementById('map-2');
+                if (mapElement2) {
+                    const map2 = L.map(mapElement2, {
+                        center: [40.7589, -73.9851],
+                        zoom: 13,
+                        scrollWheelZoom: false,
+                        dragging: false,
+                        zoomControl: false,
+                        attributionControl: false
+                    });
+
+                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    }).addTo(map2);
+
+                    L.marker([40.7589, -73.9851])
+                        .addTo(map2)
+                        .bindPopup("<strong>Street Lights</strong><br>Not Working");
+
+                    setTimeout(() => {
+                        map2.invalidateSize();
+                    }, 100);
+                }
+            } catch (e) {
+                console.error('Error initializing map for complaint 2:', e);
+            }
+
+            // Handle form submissions
+            const updateForms = document.querySelectorAll('.update-status-form');
+            updateForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    updateComplaintStatus(this);
+                });
+            });
+
+            // Clear filters button
+            document.getElementById('clearFilters').addEventListener('click', function() {
+                window.location.href = "admin_panel.html";
+            });
+
+            // Print PDF button
+            document.getElementById('printPdf').addEventListener('click', generatePDF);
+
+            // Real-time filter changes
+            document.getElementById('searchInput').addEventListener('input', function() {
+                document.getElementById('filterForm').submit();
+            });
+
+            document.getElementById('zoneFilter').addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        });
+
+        function openMapView(lat, lng, category, subcategory, location) {
+            if (!lat || !lng) {
+                alert('No location data available for this complaint.');
+                return;
+            }
+
+            const width = 800;
+            const height = 600;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            
+            const mapWindow = window.open('', 'MapView', 
+                `width=${width},height=${height},left=${left},top=${top}`);
+            
+            mapWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Complaint Location</title>
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+                    <style>
+                        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                        #map { height: 500px; width: 100%; border-radius: 8px; }
+                        .info-container { 
+                            margin-bottom: 15px; 
+                            padding: 15px;
+                            background: #f8f9fa;
+                            border-radius: 8px;
+                        }
+                        .info-label {
+                            font-weight: bold;
+                            color: #2c3e50;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="info-container">
+                        <p><span class="info-label">Category:</span> ${category}</p>
+                        <p><span class="info-label">Subcategory:</span> ${subcategory}</p>
+                        <p><span class="info-label">Location:</span> ${location}</p>
+                        <p><span class="info-label">Coordinates:</span> ${lat}, ${lng}</p>
+                    </div>
+                    <div id="map"></div>
+                    <script>
+                        const map = L.map('map').setView([${lat}, ${lng}], 15);
+                        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                        }).addTo(map);
+                        
+                        L.marker([${lat}, ${lng}])
+                            .addTo(map)
+                            .bindPopup("<strong>${category}</strong><br>${subcategory}")
+                            .openPopup();
+                    <\/script>
+                </body>
+                </html>
+            `);
+        }
+
+        function filterComplaints(status) {
+            if (status === 'all') {
+                document.getElementById('statusFilter').value = '';
+            } else {
+                document.getElementById('statusFilter').value = status;
+            }
+            document.getElementById('filterForm').submit();
+        }
+
+        function changeItemsPerPage(items) {
+            document.getElementById('itemsPerPage').value = items;
+            document.getElementById('filterForm').submit();
+        }
+
+        function updateComplaintStatus(form) {
+            showLoading();
+            
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    // Update the status badge
+                    const complaintId = formData.get('complaint_id');
+                    const newStatus = formData.get('status');
+                    const statusBadge = document.getElementById(`status-${complaintId}`);
+                    
+                    if (statusBadge) {
+                        statusBadge.textContent = newStatus;
+                        statusBadge.className = `status-badge status-${newStatus.toLowerCase().replace(' ', '-')}`;
+                    }
+                    
+                    alert('Status updated successfully!');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                alert('An error occurred. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function generatePDF() {
+            showLoading();
+            
+            fetch("generate_pdf_report.html", {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    if (data.download_url) {
+                        window.open(data.download_url, '_blank');
+                    } else {
+                        alert('PDF generation would be triggered here in production.');
+                    }
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                alert('An error occurred. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

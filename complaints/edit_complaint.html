@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Complaint - CivicZoneSolution</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            background: #f6f6f6;
+            padding-bottom: 60px;
+            min-height: 100vh;
+            position: relative;
+        }
+        .card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        #map {
+            height: 300px;
+            width: 100%;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            border-radius: 4px;
+            padding: 0.6rem 1rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+        }
+        .current-image {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .invalid-feedback {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark" style="background-color: #2c3e50; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Edit Complaint</span>
+            <div>
+                <a href="dashboard.html" class="btn btn-sm" style="background-color: #34495e; color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s;">← Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="card mx-auto" style="max-width: 600px; margin-top: 2rem;">
+            <div class="card-body">
+
+                <form method="post" enctype="multipart/form-data" id="complaintForm">
+
+                    <!-- Category -->
+                    <div class="mb-3">
+                        <label class="form-label">Category:</label>
+                        <select name="category" class="form-select" id="id_category">
+                            <option value="water_supply" selected>Water Supply</option>
+                            <option value="road_maintenance">Road Maintenance</option>
+                            <option value="street_lighting">Street Lighting</option>
+                            <option value="sanitation">Sanitation</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Subcategory -->
+                    <div class="mb-3">
+                        <label class="form-label">Subcategory:</label>
+                        <select name="subcategory" class="form-select" id="id_subcategory">
+                            <option value="low_pressure" selected>Low Pressure</option>
+                            <option value="no_water">No Water</option>
+                            <option value="contaminated">Contaminated Water</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Zone -->
+                    <div class="mb-3">
+                        <label class="form-label">Zone:</label>
+                        <select name="zone" class="form-select" id="id_zone">
+                            <option value="zone_a" selected>Zone A</option>
+                            <option value="zone_b">Zone B</option>
+                            <option value="zone_c">Zone C</option>
+                        </select>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="mb-3">
+                        <label class="form-label">Location:</label>
+                        <div id="map"></div>
+                        <input type="text" name="location" class="form-control" id="id_location" value="Main Street, City Center">
+                        <input type="hidden" name="latitude" id="id_latitude" value="12.9716">
+                        <input type="hidden" name="longitude" id="id_longitude" value="77.5946">
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number:</label>
+                        <input type="tel" name="phone" class="form-control" id="id_phone" value="+1234567890">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label class="form-label">Description:</label>
+                        <textarea name="description" class="form-control" id="id_description" rows="4">Water pressure is very low in our area. This has been an ongoing issue for the past few weeks.</textarea>
+                    </div>
+
+                    <!-- Current Image and Upload -->
+                    <div class="mb-3">
+                        <label class="form-label">Current Image:</label>
+                        <p class="text-muted">No image uploaded</p>
+                        <label class="form-label mt-2">Upload New Image (optional):</label>
+                        <input type="file" name="proof_image" class="form-control" id="id_proof_image" accept="image/*">
+                        <small class="text-muted">Leave empty to keep current image. Supported formats: JPG, JPEG, PNG</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" style="background-color: #2c3e50; border-color: #2c3e50;">Update Complaint</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p style="font-size: 1.1rem; margin: 0;">&copy; 2024 Civic Zone - All rights reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map, marker;
+        let subcategoriesByCategory = {
+            "water_supply": ["low_pressure", "no_water", "contaminated", "other"],
+            "road_maintenance": ["potholes", "cracks", "flooding", "other"],
+            "street_lighting": ["bulb_out", "flickering", "pole_damaged", "other"],
+            "sanitation": ["garbage", "sewage", "cleaning", "other"],
+            "other": ["other"]
+        };
+
+        function updateLocationInput(pos) {
+            document.getElementById('id_latitude').value = pos.lat;
+            document.getElementById('id_longitude').value = pos.lng;
+
+            // Reverse geocode to get address
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.display_name) {
+                        document.getElementById('id_location').value = data.display_name;
+                    }
+                })
+                .catch(() => {
+                    // Keep existing location if geocoding fails
+                });
+        }
+
+        function initMap() {
+            // Use complaint's existing location
+            const lat = parseFloat('12.9716');
+            const lng = parseFloat('77.5946');
+
+            const initialPos = { lat: lat, lng: lng };
+
+            map = L.map('map').setView([initialPos.lat, initialPos.lng], 15);
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            }).addTo(map);
+
+            marker = L.marker([initialPos.lat, initialPos.lng], { draggable: true }).addTo(map);
+            updateLocationInput(initialPos);
+
+            // Store original position
+            let originalLatLng = null;
+
+            // Add click listener to map with confirmation
+            map.on('click', (e) => {
+                const confirmChange = confirm("Do you want to change the complaint location?");
+                if (confirmChange) {
+                    marker.setLatLng(e.latlng);
+                    updateLocationInput(e.latlng);
+                }
+            });
+
+            // Add drag listeners with confirmation
+            marker.on('dragstart', () => {
+                originalLatLng = marker.getLatLng();
+            });
+
+            marker.on('dragend', () => {
+                const confirmChange = confirm("Do you want to change the complaint location?");
+                if (confirmChange) {
+                    const pos = marker.getLatLng();
+                    updateLocationInput(pos);
+                } else {
+                    marker.setLatLng(originalLatLng);
+                }
+            });
+        }
+
+        function handleCategoryChange() {
+            const categorySelect = document.getElementById('id_category');
+            const subcategorySelect = document.getElementById('id_subcategory');
+            const otherCategoryDiv = document.getElementById('otherCategoryDiv');
+            const otherCategoryInput = document.getElementById('id_other_category');
+
+            // Reset subcategory if category changed
+            if (categorySelect.value !== 'water_supply') {
+                subcategorySelect.value = '';
+                document.getElementById('otherSubcategoryDiv').style.display = 'none';
+            }
+
+            // Show/hide other category input
+            if (categorySelect.value === 'Other') {
+                otherCategoryDiv.style.display = 'block';
+                if (otherCategoryInput) otherCategoryInput.required = true;
+            } else {
+                otherCategoryDiv.style.display = 'none';
+                if (otherCategoryInput) otherCategoryInput.required = false;
+            }
+
+            // Clear all subcategory options except first
+            while (subcategorySelect.options.length > 0) {
+                subcategorySelect.remove(0);
+            }
+
+            // Add default option
+            const defaultOption = new Option('Select Subcategory', '');
+            subcategorySelect.add(defaultOption);
+
+            // Add subcategories based on selected category
+            const selectedCategory = categorySelect.value;
+            if (selectedCategory && selectedCategory !== 'Other') {
+                const subcategories = subcategoriesByCategory[selectedCategory] || [];
+                subcategories.forEach(sub => {
+                    const option = new Option(sub, sub);
+                    subcategorySelect.add(option);
+                });
+            }
+
+            // Add "Other" option
+            const otherOption = new Option('Other', 'Other');
+            subcategorySelect.add(otherOption);
+
+            // Restore previous subcategory value if it exists for this category
+            const previousSubcategory = 'low_pressure';
+            if (previousSubcategory) {
+                // Check if previous subcategory is in the current category's subcategories
+                if (selectedCategory && selectedCategory !== 'Other') {
+                    const subcategories = subcategoriesByCategory[selectedCategory] || [];
+                    if (subcategories.includes(previousSubcategory)) {
+                        subcategorySelect.value = previousSubcategory;
+                    }
+                }
+            }
+        }
+
+        function handleSubcategoryChange() {
+            const subcategorySelect = document.getElementById('id_subcategory');
+            const otherSubcategoryDiv = document.getElementById('otherSubcategoryDiv');
+            const otherSubcategoryInput = document.getElementById('id_other_subcategory');
+
+            if (subcategorySelect.value === 'Other') {
+                otherSubcategoryDiv.style.display = 'block';
+                if (otherSubcategoryInput) otherSubcategoryInput.required = true;
+            } else {
+                otherSubcategoryDiv.style.display = 'none';
+                if (otherSubcategoryInput) otherSubcategoryInput.required = false;
+            }
+        }
+
+        function validatePhoneNumber(phone) {
+            const cleaned = phone.replace(/\D/g, '');
+            return cleaned.length === 10;
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+
+            // Set up category change handler
+            const categorySelect = document.getElementById('id_category');
+            if (categorySelect) {
+                categorySelect.addEventListener('change', handleCategoryChange);
+                // Initial call to set up subcategories
+                handleCategoryChange();
+
+                // Set the initial subcategory value after categories are loaded
+                setTimeout(() => {
+                    const initialSubcategory = 'low_pressure';
+                    if (initialSubcategory) {
+                        const subcategorySelect = document.getElementById('id_subcategory');
+                        if (subcategorySelect) {
+                            // Try to find and select the option
+                            for (let i = 0; i < subcategorySelect.options.length; i++) {
+                                if (subcategorySelect.options[i].value === initialSubcategory) {
+                                    subcategorySelect.value = initialSubcategory;
+                                    break;
+                                }
+                            }
+                            handleSubcategoryChange();
+                        }
+                    }
+                }, 100);
+            }
+
+            // Set up subcategory change handler
+            const subcategorySelect = document.getElementById('id_subcategory');
+            if (subcategorySelect) {
+                subcategorySelect.addEventListener('change', handleSubcategoryChange);
+            }
+
+            // Phone number validation
+            const phoneInput = document.getElementById('id_phone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, '');
+
+                    if (validatePhoneNumber(this.value)) {
+                        this.classList.remove('is-invalid');
+                    } else {
+                        this.classList.add('is-invalid');
+                    }
+                });
+            }
+
+            // Form validation
+            const form = document.getElementById('complaintForm');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    // Validate phone number
+                    const phone = document.getElementById('id_phone').value;
+                    if (!validatePhoneNumber(phone)) {
+                        event.preventDefault();
+                        alert('Please enter a valid 10-digit phone number');
+                        return false;
+                    }
+
+                    // Validate location
+                    const lat = document.getElementById('id_latitude').value;
+                    const lng = document.getElementById('id_longitude').value;
+                    if (!lat || !lng) {
+                        event.preventDefault();
+                        alert('Please select a location on the map');
+                        return false;
+                    }
+
+                    return true;
+                });
+            }
+
+            // Show/hide other fields based on initial values
+            const initialCategory = 'water_supply';
+            if (initialCategory === 'Other') {
+                document.getElementById('otherCategoryDiv').style.display = 'block';
+            }
+
+            const initialSubcategory = 'low_pressure';
+            if (initialSubcategory === 'Other') {
+                document.getElementById('otherSubcategoryDiv').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

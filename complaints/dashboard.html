@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Complaints - CivicZoneSolution</title>
+    <link rel="stylesheet" href="../static/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Copy all the CSS styles from the PHP file here */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: #2c3e50;
+            color: white;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+        }
+        .logo-container i {
+            font-size: 2.5rem;
+            color: #3498db;
+        }
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            letter-spacing: 0.5px;
+        }
+        .logo-text .civic {
+            color: white;
+        }
+        .logo-text .zone {
+            color: #3498db;
+        }
+        .logo-text .solution {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+        .user-welcome {
+            color: #fff;
+            margin-right: 20px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: background-color 0.3s;
+        }
+        .user-welcome:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .user-welcome i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        .header-links {
+            display: flex;
+            gap: 15px;
+        }
+        .header-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .header-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Status styles */
+        .status-pending {
+            background-color: #f39c12;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .status-progress {
+            background-color: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .status-resolved {
+            background-color: #27ae60;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        /* Notification */
+        .notification {
+            background-color: #e8f5e9;
+            border-left: 4px solid #27ae60;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .description-cell {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Pagination styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .pagination-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #dee2e6;
+            background: white;
+            color: #2c3e50;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 40px;
+            text-align: center;
+        }
+        .pagination-btn:hover {
+            background: #2c3e50;
+            color: white;
+            border-color: #2c3e50;
+            text-decoration: none;
+        }
+        .pagination-btn.active {
+            background: #2c3e50;
+            color: white;
+            border-color: #2c3e50;
+        }
+        .pagination-btn.disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .page-numbers {
+            display: flex;
+            gap: 0.25rem;
+        }
+        .items-per-page {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .items-per-page select {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <a href="dashboard.html" class="logo-container">
+                <i class="fas fa-city"></i>
+                <div class="logo-text">
+                    <span class="civic">Civic</span>
+                    <span class="zone">Zone</span>
+                    <span class="solution">Solution</span>
+                </div>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="user-welcome">
+                <i class="fas fa-user-circle"></i>
+                Welcome, User Name!
+            </span>
+            <div class="header-links">
+               
+                <a href="submit_complaint.html">+ New Complaint</a>
+                <a href="../accounts/user_profile.html">My Profile</a>
+                 <a href="feedback.html">Feedback</a>
+                <a href="../accounts/login.html">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 20px;">
+        
+        <div class="filter-section" style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+            <strong>Filter by:</strong>
+            <select id="filterSelect" onchange="handleFilterChange()">
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+            </select>
+        </div>
+
+        <script>
+            function handleFilterChange() {
+                const filter = document.getElementById('filterSelect').value;
+                const url = new URL(window.location);
+                if (filter) {
+                    url.searchParams.set('filter', filter);
+                } else {
+                    url.searchParams.delete('filter');
+                }
+                url.searchParams.set('page', '1');
+                window.location.href = url.toString();
+            }
+        </script>
+
+        <table>
+            <tr>
+                <th style="min-width:90px;max-width:110px;">Date</th>
+                <th style="min-width:120px;max-width:150px;">Category</th>
+                <th style="min-width:120px;max-width:150px;">Subcategory</th>
+                <th style="min-width:120px;max-width:150px;">Zone</th>
+                <th style="min-width:180px;max-width:300px;">Location</th>
+                <th style="min-width:180px;max-width:300px;">Description</th>
+                <th style="min-width:70px;max-width:90px;">Image</th>
+                <th style="min-width:90px;max-width:110px;text-align:center;">Status</th>
+                <th style="min-width:110px;max-width:130px;text-align:center;">Action</th>
+            </tr>
+
+                <tr>
+                    <td>15 Jan 2024</td>
+                    <td>Water Supply</td>
+                    <td>Low Pressure</td>
+                    <td>Zone A</td>
+                    <td title="Main Street, City Center">Main Street, City Center</td>
+                    <td class="description-cell">Water pressure is very low in our area</td>
+                    <td>—</td>
+                    <td style="text-align:center;">
+                        <span class="status-pending"><strong>Pending</strong></span>
+                    </td>
+                    <td style="text-align:center;">
+                        <a href="edit_complaint.html" class="btn btn-sm" style="background-color: #34495e; color: white; text-decoration: none; padding: 0.5rem 1rem; margin-bottom: 0.9rem; border-radius: 4px; transition: background-color 0.3s; margin-right: 0.5rem; width: 80px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">Edit</a>
+                        <a href="confirm_delete.html" class="btn btn-sm" style="background-color: #e74c3c; color: white; text-decoration: none; margin-right: 0.5rem; margin-bottom: 0.9rem ;padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s; width: 80px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">Delete</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>10 Jan 2024</td>
+                    <td>Road Maintenance</td>
+                    <td>Potholes</td>
+                    <td>Zone B</td>
+                    <td title="Highway Road">Highway Road</td>
+                    <td class="description-cell">Large potholes causing traffic issues</td>
+                    <td>—</td>
+                    <td style="text-align:center;">
+                        <span class="status-progress"><strong>In Progress</strong></span>
+                    </td>
+                    <td style="text-align:center;">
+                        —
+                    </td>
+                </tr>
+                <tr>
+                    <td>5 Jan 2024</td>
+                    <td>Street Lighting</td>
+                    <td>Bulb Out</td>
+                    <td>Zone C</td>
+                    <td title="Park Avenue">Park Avenue</td>
+                    <td class="description-cell">Street light not working for weeks</td>
+                    <td>—</td>
+                    <td style="text-align:center;">
+                        <span class="status-resolved"><strong>Resolved</strong></span>
+                    </td>
+                    <td style="text-align:center;">
+                        —
+                    </td>
+                </tr>
+        </table>
+
+        <script>
+        function changeItemsPerPage(items) {
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.set('items', items);
+            currentUrl.searchParams.set('page', '1');
+            window.location.href = currentUrl.toString();
+        }
+        </script>
+    </main>
+
+    <footer style="text-align: center; padding: 20px; background-color: #2c3e50; color: white; margin-top: 40px;">
+        &copy; 2025 Civic Zone - All rights reserved
+    </footer>
+</body>
+</html>
